@@ -65,7 +65,7 @@ public class GeneratorThread extends Thread {
         if (!outputDir.equals("")) {
           Options.setDir(outputDir);
         }
-				Main.generate(new File(inputFile));
+				Main.generate(new File(inputFile), null);
 				Out.statistics();
 				parent.generationFinished(true);
 			}

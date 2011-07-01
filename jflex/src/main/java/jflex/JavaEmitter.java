@@ -22,7 +22,7 @@ import java.text.*;
  * @author Gerwin Klein
  * @version JFlex 1.5, $Revision$, $Date$
  */
-final public class Emitter {
+final public class JavaEmitter implements IEmitter {
     
   // bit masks for state attributes
   static final private int FINAL = 1;
@@ -65,7 +65,7 @@ final public class Emitter {
 
   private String visibility = "public";
 
-  public Emitter(File inputFile, LexParse parser, DFA dfa) throws IOException {
+  public JavaEmitter(File inputFile, LexParse parser, DFA dfa) throws IOException {
 
     String name = getBaseName(parser.scanner.className) + ".java";
 
@@ -1535,7 +1535,7 @@ final public class Emitter {
 
 
   /**
-   * Main Emitter method.  
+   * Main JavaEmitter method.  
    */
   public void emit() {    
 

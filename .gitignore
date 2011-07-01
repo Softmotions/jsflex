@@ -1,0 +1,4 @@
+/jflex/target/
+/testsuite/jflex-testsuite-maven-plugin/target/
+/maven-jflex-plugin/target/
+/jflex-unicode-maven-plugin/target/

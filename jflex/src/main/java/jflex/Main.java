@@ -34,7 +34,7 @@ public class Main {
    * @param inputFile  a file containing a lexical specification
    *                   to generate a scanner for.
    */
-  public static void generate(File inputFile) {
+  public static void generate(File inputFile, EmitterFactory ifactory) {
 
     Out.resetCounters();
 
@@ -68,7 +68,7 @@ public class Main {
                                  Out.NL+nfa+Out.NL); 
       
       if (Options.dot) 
-        nfa.writeDot(Emitter.normalize("nfa.dot", null));       //$NON-NLS-1$
+        nfa.writeDot(JavaEmitter.normalize("nfa.dot", null));       //$NON-NLS-1$
 
       Out.println(ErrorMessages.NFA_STATES, nfa.numStates);
       
@@ -85,7 +85,7 @@ public class Main {
                                  Out.NL+dfa+Out.NL);       
 
       if (Options.dot) 
-        dfa.writeDot(Emitter.normalize("dfa-big.dot", null)); //$NON-NLS-1$
+        dfa.writeDot(JavaEmitter.normalize("dfa-big.dot", null)); //$NON-NLS-1$
 
       Out.checkErrors();
 
@@ -100,11 +100,16 @@ public class Main {
                                    Out.NL+dfa); 
 
       if (Options.dot) 
-        dfa.writeDot(Emitter.normalize("dfa-min.dot", null)); //$NON-NLS-1$
+        dfa.writeDot(JavaEmitter.normalize("dfa-min.dot", null)); //$NON-NLS-1$
 
       time.start();
       
-      Emitter e = new Emitter(inputFile, parser, dfa);
+      IEmitter e = null;
+      if (ifactory == null) {
+        e = new JavaEmitter(inputFile, parser, dfa);
+      } else {
+        e = ifactory.createEmitter(inputFile, parser, dfa);  
+      }
       e.emit();
 
       time.stop();
@@ -292,7 +297,7 @@ public class Main {
 
     if (files.size() > 0) {
       for (File file : files) 
-        generate(file);
+        generate(file, null);
     }
     else {
       new MainFrame();

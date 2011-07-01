@@ -182,6 +182,11 @@ public class Skeleton {
    * (Re)load the default skeleton. Looks in the current system class path.   
    */
   public static void readDefault() {
+    readResource(DEFAULT_LOC);
+  }
+  
+  
+  public static void readResource(String location) {
     ClassLoader l = Skeleton.class.getClassLoader();
     URL url;
     
@@ -190,10 +195,10 @@ public class Skeleton {
      * Use system class loader in this case.
      */
     if (l != null) {
-      url = l.getResource(DEFAULT_LOC); 
+      url = l.getResource(location); 
     }
     else {
-      url = ClassLoader.getSystemResource(DEFAULT_LOC); 
+      url = ClassLoader.getSystemResource(location); 
     }
 
     if (url == null) {

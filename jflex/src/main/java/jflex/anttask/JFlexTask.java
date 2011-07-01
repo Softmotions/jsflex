@@ -57,7 +57,7 @@ public class JFlexTask extends Task {
         File destFile = new File(outputDir, className + ".java");
         
         if (inputFile.lastModified() > destFile.lastModified()) {      
-          Main.generate(inputFile);      
+          Main.generate(inputFile, null);      
           if (!Options.verbose)
             System.out.println("Generated: " + destFile.getName());
         }

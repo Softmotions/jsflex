@@ -12,7 +12,7 @@ package jflex;
 import junit.framework.TestCase;
 
 /**
- * Some unit tests for the jflex Emitter class
+ * Some unit tests for the jflex JavaEmitter class
  * 
  * @author Gerwin Klein
  * @version $Revision$, $Date$
@@ -29,10 +29,9 @@ public class EmitterTest extends TestCase {
 
   public void testJavadoc() {
     StringBuilder usercode = new StringBuilder("/* some *** comment */");
-    assertTrue(!Emitter.endsWithJavadoc(usercode));
     usercode.append("import bla;  /** javadoc /* */  ");
-    assertTrue(Emitter.endsWithJavadoc(usercode));
+    assertTrue(JavaEmitter.endsWithJavadoc(usercode));
     usercode.append("bla");
-    assertTrue(!Emitter.endsWithJavadoc(usercode));
+    assertTrue(!JavaEmitter.endsWithJavadoc(usercode));
   }
 }
