@@ -36,16 +36,16 @@ public class SkeletonTest extends TestCase {
   }
 
   public void testMakePrivate() {
-    Skeleton.makePrivate(); 
-    for (int i=0; i < Skeleton.line.length; i++) {
-      assertEquals(Skeleton.line[i].indexOf("public"), -1);
+    Options.skel.makePrivate(); 
+    for (int i=0; i < Options.skel.line.length; i++) {
+      assertEquals(Options.skel.line[i].indexOf("public"), -1);
     }
   }
 
   public void testDefault() {
-    Skeleton.readSkelFile(new File("src/main/jflex/skeleton.nested"));
-    assertTrue(jflex.Skeleton.line[3].indexOf("java.util.Stack") > 0);
-    Skeleton.readDefault();
-    assertEquals(jflex.Skeleton.line[3].indexOf("java.util.Stack"), -1);
+    Options.skel.readSkelFile(new File("src/main/jflex/skeleton.nested"));
+    assertTrue(Options.skel.line[3].indexOf("java.util.Stack") > 0);
+    Options.skel.readDefault();
+    assertEquals(Options.skel.line[3].indexOf("java.util.Stack"), -1);
   }
 }

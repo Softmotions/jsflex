@@ -52,8 +52,10 @@ public class Options {
   public static boolean dot;
   /** If true, you will be flooded with information (e.g. dfa tables).  */
   public static boolean dump;
+  
+  public static Skeleton skel = new Skeleton();
 
-	static { setDefaults();	}
+  static { setDefaults();	}
 
 
   /**
@@ -106,10 +108,10 @@ public class Options {
     time = false;
     dot = false;
     dump = false;
-    Skeleton.readDefault();
+    skel.readDefault();
   }
 
-  public static void setSkeleton(File skel) {
-    Skeleton.readSkelFile(skel);
+  public static void setSkeleton(File file) {
+    skel.readSkelFile(file);
   }   
 }

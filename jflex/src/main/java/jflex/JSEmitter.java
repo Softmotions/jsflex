@@ -82,7 +82,8 @@ public class JSEmitter implements IEmitter {
         this.scanner = parser.scanner;        
         this.inputFile = inputFile;
         this.dfa = dfa;
-        this.skel = new Skeleton(out);
+        this.skel = new Skeleton(out, null);
+        this.skel.setSize(21);
         this.skel.readResource("jflex/skeleton-js.default");
     }
 
@@ -398,20 +399,20 @@ public class JSEmitter implements IEmitter {
         for (String name : scanner.states.names()) {
             int num = scanner.states.getNumber(name);
 
-            println("  static final int " + name + " = " + 2 * num + ";");
+            println("const " + name + " = " + 2 * num + ";");
         }
 
         // can't quite get rid of the indirection, even for non-bol lex states: 
         // their DFA states might be the same, but their EOF actions might be different
         // (see bug #1540228)
         println("");
-        println("  /**");
-        println("   * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l");
-        println("   * ZZ_LEXSTATE[l+1] is the state in the DFA for the lexical state l");
-        println("   *                  at the beginning of a line");
-        println("   * l is of the form l = 2*k, k a non negative integer");
-        println("   */");
-        println("  private static final int ZZ_LEXSTATE[] = { ");
+        println("/**");
+        println(" * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l");
+        println(" * ZZ_LEXSTATE[l+1] is the state in the DFA for the lexical state l");
+        println(" *                  at the beginning of a line");
+        println(" * l is of the form l = 2*k, k a non negative integer");
+        println(" */");
+        println("const ZZ_LEXSTATE = [ ");
 
         int i, j = 0;
         print("    ");
@@ -429,7 +430,7 @@ public class JSEmitter implements IEmitter {
         }
 
         println(dfa.entryState[i]);
-        println("  };");
+        println("  ];");
     }
 
     private void emitDynamicInit() {
@@ -1536,22 +1537,21 @@ public class JSEmitter implements IEmitter {
 
         reduceColumns();
         findActionStates();
-
+        
         emitHeader();
+        println("const ZZ_BUFFERSIZE = " + scanner.bufferSize + ";");
+        if (scanner.debugOption) {
+            println("const ZZ_NL = '\n';");
+        }
+        skel.emitNext();
+        emitLexicalStates();   
+         
+        println("");            
+        
         emitUserCode();
         emitClassName();
-
         skel.emitNext();
-
-        println("  private static final int ZZ_BUFFERSIZE = " + scanner.bufferSize + ";");
-
-        if (scanner.debugOption) {
-            println("  private static final String ZZ_NL = System.getProperty(\"line.separator\");");
-        }
-
-        skel.emitNext();
-
-        emitLexicalStates();
+       
 
         emitCharMapArray();
 

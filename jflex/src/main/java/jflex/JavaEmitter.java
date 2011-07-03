@@ -79,7 +79,7 @@ final public class JavaEmitter implements IEmitter {
     this.visibility = scanner.visibility;
     this.inputFile = inputFile;
     this.dfa = dfa;
-    this.skel = new Skeleton(out);
+    this.skel = new Skeleton(out, Options.skel);
   }
 
   /**

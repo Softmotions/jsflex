@@ -1,4 +1,17 @@
+ 
+  /* error codes */
+const ZZ_UNKNOWN_ERROR = 0;
+const ZZ_NO_MATCH = 1;
+const ZZ_PUSHBACK_2BIG = 2;
 
+/* error messages for the codes above */
+const ZZ_ERROR_MSG = [
+    "Unkown internal scanner error",
+    "Error: could not match input",
+    "Error: pushback value was too large"
+];
+
+--- BEGIN FUNC
   var me = this;
   /** This character denotes the end of file */
   const YYEOF = -1;
@@ -6,20 +19,6 @@
   /** initial size of the lookahead buffer */
 --- private static final int ZZ_BUFFERSIZE = ...;
 
-  /** lexical states */
----  lexical states, charmap
-
-  /* error codes */
-  const ZZ_UNKNOWN_ERROR = 0;
-  const ZZ_NO_MATCH = 1;
-  const ZZ_PUSHBACK_2BIG = 2;
-
-  /* error messages for the codes above */
-  const ZZ_ERROR_MSG = [
-    "Unkown internal scanner error",
-    "Error: could not match input",
-    "Error: pushback value was too large"
-  ];
 
 --- isFinal list
   /** the input device todo remove */
@@ -140,9 +139,9 @@
   var yyclose = function() {
     me.zzAtEOF = true;            /* indicate end of file */
     me.mezzEndRead = me.zzStartRead;  /* invalidate buffer    */
-
-    if (me.zzReader != null)
+    if (me.zzReader != null && (typeof me.zzReader.close === "function") {
       me.zzReader.close();
+    }
   }
 
 

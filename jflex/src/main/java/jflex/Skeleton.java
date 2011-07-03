@@ -36,16 +36,13 @@ public class Skeleton {
   static final private String DEFAULT_LOC = "jflex/skeleton.default"; //$NON-NLS-1$
   
   /** expected number of sections in the skeleton file */
-  static final private int size = 21;
+  private int size = 21;
 
   /** platform specific newline */
   static final private String NL = System.getProperty("line.separator");  //$NON-NLS-1$
 
   /** The skeleton */  
-  public static String line[];
-  
-  /** initialization */   
-  static { readDefault(); }  
+  public String line[];
   
   // the state based, iterator part of Skeleton:
 
@@ -59,16 +56,25 @@ public class Skeleton {
    */
   private PrintWriter out;
 
+   public void setSize(int size) {
+      this.size = size;
+   }
 
   /**
    * Creates a new skeleton (iterator) instance. 
    *
    * @param   out  the writer to write the skeleton-parts to
    */
-  public Skeleton(PrintWriter out) {
+  public Skeleton(PrintWriter out, Skeleton parent) {
     this.out = out;
+    if (parent != null) {
+        this.line = new String[parent.line.length];    
+        System.arraycopy(parent.line, 0, this.line, 0, this.line.length);
+    }
   }
 
+  public Skeleton() {
+  }
 
   /**
    * Emits the next part of the skeleton
@@ -83,7 +89,7 @@ public class Skeleton {
    *
    * Replaces all occurences of " public " in the skeleton with " private ". 
    */
-  public static void makePrivate() {
+  public void makePrivate() {
     for (int i=0; i < line.length; i++) {
       line[i] = replace(" public ", " private ", line[i]);   //$NON-NLS-1$ //$NON-NLS-2$
     }
@@ -95,7 +101,7 @@ public class Skeleton {
    * 
    * @param skeletonFile  the file to read (must be != null and readable)
    */
-  public static void readSkelFile(File skeletonFile) {
+  public void readSkelFile(File skeletonFile) {
     if (skeletonFile == null)
       throw new IllegalArgumentException("Skeleton file must not be null"); //$NON-NLS-1$
 
@@ -124,7 +130,7 @@ public class Skeleton {
    * @throws IOException        if an IO error occurs
    * @throws GeneratorException if the number of skeleton sections does not match 
    */
-  public static void readSkel(BufferedReader reader) throws IOException {
+  public void readSkel(BufferedReader reader) throws IOException {
     List<String> lines = new ArrayList<String>();
     StringBuilder section = new StringBuilder();
 
@@ -181,12 +187,12 @@ public class Skeleton {
   /**
    * (Re)load the default skeleton. Looks in the current system class path.   
    */
-  public static void readDefault() {
+  public void readDefault() {
     readResource(DEFAULT_LOC);
   }
   
   
-  public static void readResource(String location) {
+  public void readResource(String location) {
     ClassLoader l = Skeleton.class.getClassLoader();
     URL url;
     

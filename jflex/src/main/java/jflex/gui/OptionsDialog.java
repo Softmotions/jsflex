@@ -200,7 +200,7 @@ public class OptionsDialog extends Dialog {
     if (d.getFile() != null) {
       File skel = new File(d.getDirectory()+d.getFile());
       try {
-        Skeleton.readSkelFile(skel);
+        Options.skel.readSkelFile(skel);
         skelFile.setText(skel.toString());
       }
       catch (GeneratorException e) {
@@ -242,7 +242,6 @@ public class OptionsDialog extends Dialog {
 
   private void setDefaults() {
     Options.setDefaults();
-    Skeleton.readDefault();
     skelFile.setText("");
     updateState();
   }
