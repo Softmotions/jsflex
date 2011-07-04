@@ -641,7 +641,7 @@ public class JSEmitter implements IEmitter {
 
     private void emitLexFunctHeader() {
 
-        print(" ");
+        print(" const ");
 
         /*if (scanner.tokenType == null) {
             if (scanner.isInteger) {
@@ -657,10 +657,11 @@ public class JSEmitter implements IEmitter {
 
         print(" ");
         */
-
+        
+            
         print(scanner.functionName);
 
-        print("()");
+        print(" = function()");
 
         /*if (scanner.lexThrow != null) {
             print(", ");
