@@ -67,7 +67,6 @@ public class JSEmitter implements IEmitter {
     private Map<Action, Integer> actionTable = new HashMap<Action, Integer>();
 
     private CharClassInterval[] intervals;
-    
 
     public JSEmitter(File inputFile, LexParse parser, DFA dfa) throws IOException {
 
@@ -79,7 +78,7 @@ public class JSEmitter implements IEmitter {
 
         this.out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
         this.parser = parser;
-        this.scanner = parser.scanner;        
+        this.scanner = parser.scanner;
         this.inputFile = inputFile;
         this.dfa = dfa;
         this.skel = new Skeleton(out, null);
@@ -226,7 +225,7 @@ public class JSEmitter implements IEmitter {
     private void emitMain() {
         if (!(scanner.standalone || scanner.debugOption || scanner.cupDebug)) {
             return;
-        }        
+        }
 
         if (scanner.standalone) {
             println("  /**");
@@ -361,13 +360,13 @@ public class JSEmitter implements IEmitter {
             println(" * on " + date + " from the specification file");
             println(" * <tt>" + path + "</tt>");
             println(" */");
-        }             
-        
+        }
+
 
         print("function ");
         print(scanner.className);
         print("()");
-               
+
 
         println(" {");
     }
@@ -581,7 +580,7 @@ public class JSEmitter implements IEmitter {
         println("  /** ");
         println("   * Translates characters to character classes");
         println("   */");
-        println("  private static final String ZZ_CMAP_PACKED = ");
+        println("const ZZ_CMAP_PACKED = ");
 
         int n = 0;  // numbers of entries in current line    
         print("    \"");
@@ -620,7 +619,7 @@ public class JSEmitter implements IEmitter {
         println("  /** ");
         println("   * Translates characters to character classes");
         println("   */");
-        println("  private static final char [] ZZ_CMAP = zzUnpackCMap(ZZ_CMAP_PACKED);");
+        println("const ZZ_CMAP = zzUnpackCMap(ZZ_CMAP_PACKED);");
         println();
     }
 
@@ -729,7 +728,7 @@ public class JSEmitter implements IEmitter {
 
         print("  ");
 
-       
+
         print(getBaseName(scanner.className));
         print("(java.io.Reader in");
         if (printCtorArgs) {
@@ -766,7 +765,7 @@ public class JSEmitter implements IEmitter {
         }
 
         print("  ");
-        
+
         print(getBaseName(scanner.className));
         print("(java.io.InputStream in");
         if (printCtorArgs) {
@@ -828,7 +827,7 @@ public class JSEmitter implements IEmitter {
     }
 
     private void emitLexFunctHeader() {
-        
+
         print(" ");
 
         if (scanner.tokenType == null) {
@@ -1537,24 +1536,15 @@ public class JSEmitter implements IEmitter {
 
         reduceColumns();
         findActionStates();
-        
+
         emitHeader();
         println("const ZZ_BUFFERSIZE = " + scanner.bufferSize + ";");
         if (scanner.debugOption) {
             println("const ZZ_NL = '\n';");
         }
         skel.emitNext();
-        emitLexicalStates();   
-         
-        println("");            
-        
-        emitUserCode();
-        emitClassName();
-        skel.emitNext();
-       
-
+        emitLexicalStates();
         emitCharMapArray();
-
         emitActionTable();
 
         if (scanner.useRowMap) {
@@ -1568,6 +1558,12 @@ public class JSEmitter implements IEmitter {
                 emitZZTrans();
             }
         }
+
+        println("");
+
+        emitUserCode();
+        emitClassName();
+        skel.emitNext();
 
         skel.emitNext();
 
@@ -1626,5 +1622,356 @@ public class JSEmitter implements IEmitter {
         skel.emitNext();
 
         out.close();
+    }
+
+    protected abstract static class PackEmitter {
+
+        /** name of the generated array (mixed case, no yy prefix) */
+        protected String name;
+
+        /** current UTF8 length of generated string in current chunk */
+        private int UTF8Length;
+
+        /** position in the current line */
+        private int linepos;
+
+        /** max number of entries per line */
+        private static final int maxEntries = 16;
+
+        /** output buffer */
+        protected StringBuilder out = new StringBuilder();
+
+        /** number of existing string chunks */
+        protected int chunks;
+
+        /** maximum size of chunks */
+        // String constants are stored as UTF8 with 2 bytes length
+        // field in class files. One Unicode char can be up to 3 
+        // UTF8 bytes. 64K max and two chars safety. 
+        private static final int maxSize = 0xFFFF - 6;
+
+        /** indent for string lines */
+        private static final String indent = "    ";
+
+        /**
+         * Create new emitter for an array.
+         * 
+         * @param name  the name of the generated array
+         */
+        protected PackEmitter(String name) {
+            this.name = name;
+        }
+
+        /**
+         * Convert array name into all uppercase internal scanner 
+         * constant name.
+         * 
+         * @return <code>name</code> as a internal constant name.
+         * @see PackEmitter#name
+         */
+        protected String constName() {
+            return "ZZ_" + name.toUpperCase();
+        }
+
+        /**
+         * Return current output buffer.
+         */
+        public String toString() {
+            return out.toString();
+        }
+
+        /**
+         * Emit declaration of decoded member and open first chunk.
+         */
+        public void emitInit() {
+            out.append("const ");
+            out.append(constName());
+            out.append(" = zzUnpack");
+            out.append(name);
+            out.append("();");
+            nl();
+            nextChunk();
+        }
+
+        /**
+         * Emit single unicode character. 
+         * 
+         * Updates length, position, etc.
+         *
+         * @param i  the character to emit.
+         * @prec  0 <= i <= 0xFFFF 
+         */
+        public void emitUC(int i) {
+            if (i < 0 || i > 0xFFFF) {
+                throw new IllegalArgumentException("character value expected");
+            }
+
+            // cast ok because of prec  
+            char c = (char) i;
+
+            printUC(c);
+            UTF8Length += UTF8Length(c);
+            linepos++;
+        }
+
+        /**
+         * Execute line/chunk break if necessary. 
+         * Leave space for at least two chars.
+         */
+        public void breaks() {
+            if (UTF8Length >= maxSize) {
+                // close current chunk
+                out.append("\";");
+                nl();
+
+                nextChunk();
+            } else {
+                if (linepos >= maxEntries) {
+                    // line break
+                    out.append("\"+");
+                    nl();
+                    out.append(indent);
+                    out.append("\"");
+                    linepos = 0;
+                }
+            }
+        }
+
+        /**
+         * Emit the unpacking code. 
+         */
+        public abstract void emitUnpack();
+
+        /**
+         *  emit next chunk 
+         */
+        private void nextChunk() {
+            nl();
+            out.append("const ");
+            out.append(constName());
+            out.append("_PACKED_");
+            out.append(chunks);
+            out.append(" =");
+            nl();
+            out.append(indent);
+            out.append("\"");
+
+            UTF8Length = 0;
+            linepos = 0;
+            chunks++;
+        }
+
+        /**
+         *  emit newline 
+         */
+        protected void nl() {
+            out.append(Out.NL);
+        }
+
+        /**
+         * Append a unicode/octal escaped character 
+         * to <code>out</code> buffer.
+         * 
+         * @param c the character to append
+         */
+        private void printUC(char c) {
+            if (c > 255) {
+                out.append("\\u");
+                if (c < 0x1000) {
+                    out.append("0");
+                }
+                out.append(Integer.toHexString(c));
+            } else {
+                out.append("\\");
+                out.append(Integer.toOctalString(c));
+            }
+        }
+
+        /**
+         * Calculates the number of bytes a Unicode character
+         * would have in UTF8 representation in a class file.
+         *
+         * @param value  the char code of the Unicode character
+         * @prec  0 <= value <= 0xFFFF
+         *
+         * @return length of UTF8 representation.
+         */
+        private int UTF8Length(char value) {
+            // if (value < 0 || value > 0xFFFF) throw new Error("not a char value ("+value+")");
+
+            // see JVM spec section 4.4.7, p 111
+            if (value == 0) {
+                return 2;
+            }
+            if (value <= 0x7F) {
+                return 1;
+            }
+
+            // workaround for javac bug (up to jdk 1.3):
+            if (value < 0x0400) {
+                return 2;
+            }
+            if (value <= 0x07FF) {
+                return 3;
+            }
+
+            // correct would be:
+            // if (value <= 0x7FF) return 2;
+            return 3;
+        }
+
+        // convenience
+        protected void println(String s) {
+            out.append(s);
+            nl();
+        }
+    };
+
+    private static class CountEmitter extends PackEmitter {
+
+        /** number of entries in expanded array */
+        private int numEntries;
+
+        /** translate all values by this amount */
+        private int translate = 0;
+
+        /**
+         * Create a count/value emitter for a specific field.
+         * 
+         * @param name   name of the generated array
+         */
+        protected CountEmitter(String name) {
+            super(name);
+        }
+
+        /**
+         * Emits count/value unpacking code for the generated array. 
+         * 
+         * @see jflex.PackEmitter#emitUnpack()
+         */
+        public void emitUnpack() {
+            // close last string chunk:
+            println("\";");
+
+            nl();
+            println("var zzUnpack" + name + " = function() {");
+            println("   var result = [];");
+            println("   offset = 0;");
+
+            for (int i = 0; i < chunks; i++) {
+                println("   offset = zzUnpack" + name + "Internal(" + constName() + "_PACKED_" + i + ", offset, result);");
+            }
+
+            println("   return result;");
+            println("}");
+            nl();
+
+            println("var zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("   var i = 0;       /* index in packed string  */");
+            println("   var j = offset;  /* index in unpacked array */");
+            println("   var l = packed.length();");
+            println("   while (i < l) {");
+            println("      var count = packed.charAt(i++);");
+            println("      var value = packed.charAt(i++);");
+            if (translate == 1) {
+                println("      value--;");
+            } else if (translate != 0) {
+                println("      value-= " + translate);
+            }
+            println("      do result[j++] = value; while (--count > 0);");
+            println("   }");
+            println("   return j;");
+            println("}");
+        }
+
+        /**
+         * Translate all values by given amount.
+         * 
+         * Use to move value interval from [0, 0xFFFF] to something different.
+         * 
+         * @param i   amount the value will be translated by. 
+         *            Example: <code>i = 1</code> allows values in [-1, 0xFFFE].
+         */
+        public void setValTranslation(int i) {
+            this.translate = i;
+        }
+
+        /**
+         * Emit one count/value pair. 
+         * 
+         * Automatically translates value by the <code>translate</code> value. 
+         * 
+         * @param count
+         * @param value
+         * 
+         * @see CountEmitter#setValTranslation(int)
+         */
+        public void emit(int count, int value) {
+            numEntries += count;
+            breaks();
+            emitUC(count);
+            emitUC(value + translate);
+        }
+    };
+
+    private static class HiLowEmitter extends PackEmitter {
+
+        /** number of entries in expanded array */
+        private int numEntries;
+
+        /**
+         * Create new emitter for values in [0, 0xFFFFFFFF] using hi/low encoding.
+         * 
+         * @param name   the name of the generated array
+         */
+        private HiLowEmitter(String name) {
+            super(name);
+        }
+
+        /**
+         * Emits hi/low pair unpacking code for the generated array. 
+         * 
+         * @see jflex.PackEmitter#emitUnpack()
+         */
+        public void emitUnpack() {
+            // close last string chunk:
+            println("\";");
+            nl();
+            println("var zzUnpack" + name + " = function() {");
+            println("   var result = [];");
+            println("   var offset = 0;");
+
+            for (int i = 0; i < chunks; i++) {
+                println("   offset = zzUnpack" + name + "Internal(" + constName() + "_PACKED_" + i + ", offset, result);");
+            }
+
+            println("    return result;");
+            println("}");
+
+            nl();
+            println("var zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("    var i = 0;  /* index in packed string  */");
+            println("    var j = offset;  /* index in unpacked array */");
+            println("    var l = packed.length();");
+            println("    while (i < l) {");
+            println("      var high = packed.charAt(i++) << 16;");
+            println("      result[j++] = high | packed.charAt(i++);");
+            println("    }");
+            println("    return j;");
+            println("}");
+        }
+
+        /**
+         * Emit one value using two characters. 
+         *
+         * @param val  the value to emit
+         * @prec  0 <= val <= 0xFFFFFFFF 
+         */
+        public void emit(int val) {
+            numEntries += 1;
+            breaks();
+            emitUC(val >> 16);
+            emitUC(val & 0xFFFF);
+        }
     }
 }
