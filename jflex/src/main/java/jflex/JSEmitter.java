@@ -189,8 +189,8 @@ public class JSEmitter implements IEmitter {
             return;
         }
 
-        println("  /** For the backwards DFA of general lookahead statements */");
-        println("  private boolean [] zzFin = new boolean [ZZ_BUFFERSIZE+1];");
+        println("/** For the backwards DFA of general lookahead statements */");
+        println("varzzFin = [];");
         println();
     }
 
@@ -436,9 +436,9 @@ public class JSEmitter implements IEmitter {
         int count = 0;
         int value = dfa.table[0][0];
 
-        println("  /** ");
-        println("   * The transition table of the DFA");
-        println("   */");
+        println("/** ");
+        println(" * The transition table of the DFA");
+        println(" */");
 
         CountEmitter e = new CountEmitter("Trans");
         e.setValTranslation(+1); // allow vals in [-1, 0xFFFE]
@@ -476,23 +476,23 @@ public class JSEmitter implements IEmitter {
         }
 
         println("");
-        println("  /** ");
-        println("   * Unpacks the compressed character translation table.");
-        println("   *");
-        println("   * @param packed   the packed character translation table");
-        println("   * @return         the unpacked character translation table");
-        println("   */");
-        println("  private static char [] zzUnpackCMap(String packed) {");
-        println("    char [] map = new char[0x10000];");
-        println("    int i = 0;  /* index in packed string  */");
-        println("    int j = 0;  /* index in unpacked array */");
+        println("/** ");
+        println(" * Unpacks the compressed character translation table.");
+        println(" *");
+        println(" * @param packed   the packed character translation table");
+        println(" * @return         the unpacked character translation table");
+        println(" */");
+        println("var zzUnpackCMap = function(packed) {");
+        println("    var map = [];");
+        println("    var i = 0;  /* index in packed string  */");
+        println("    var j = 0;  /* index in unpacked array */");
         println("    while (i < " + 2 * intervals.length + ") {");
-        println("      int  count = packed.charAt(i++);");
-        println("      char value = packed.charAt(i++);");
+        println("      var  count = packed.charAt(i++);");
+        println("      var value = packed.charAt(i++);");
         println("      do map[j++] = value; while (--count > 0);");
         println("    }");
         println("    return map;");
-        println("  }");
+        println("}");
     }
 
     private void emitZZTrans() {
@@ -500,10 +500,10 @@ public class JSEmitter implements IEmitter {
         int i, c;
         int n = 0;
 
-        println("  /** ");
-        println("   * The transition table of the DFA");
-        println("   */");
-        println("  private static final int ZZ_TRANS [] = {");
+        println("/** ");
+        println(" * The transition table of the DFA");
+        println(" */");
+        println("const ZZ_TRANS [] = [");
 
         print("    ");
         for (i = 0; i < dfa.numStates; i++) {
@@ -527,7 +527,7 @@ public class JSEmitter implements IEmitter {
         }
 
         println();
-        println("  };");
+        println("];");
     }
 
     private void emitCharMapArrayUnPacked() {
@@ -535,10 +535,10 @@ public class JSEmitter implements IEmitter {
         CharClasses cl = parser.getCharClasses();
 
         println("");
-        println("  /** ");
-        println("   * Translates characters to character classes");
-        println("   */");
-        println("  private static final char [] ZZ_CMAP = {");
+        println("/** ");
+        println(" * Translates characters to character classes");
+        println(" */");
+        println("const ZZ_CMAP = [");
 
         int n = 0;  // numbers of entries in current line    
         print("    ");
@@ -560,7 +560,7 @@ public class JSEmitter implements IEmitter {
         }
 
         println();
-        println("  };");
+        println("];");
         println();
     }
 
@@ -577,9 +577,9 @@ public class JSEmitter implements IEmitter {
         intervals = cl.getIntervals();
 
         println("");
-        println("  /** ");
-        println("   * Translates characters to character classes");
-        println("   */");
+        println("/** ");
+        println(" * Translates characters to character classes");
+        println(" */");
         println("const ZZ_CMAP_PACKED = ");
 
         int n = 0;  // numbers of entries in current line    
@@ -616,9 +616,9 @@ public class JSEmitter implements IEmitter {
         println("\";");
         println();
 
-        println("  /** ");
-        println("   * Translates characters to character classes");
-        println("   */");
+        println("/** ");
+        println(" * Translates characters to character classes");
+        println(" */");
         println("const ZZ_CMAP = zzUnpackCMap(ZZ_CMAP_PACKED);");
         println();
     }
@@ -644,9 +644,9 @@ public class JSEmitter implements IEmitter {
 
     private void emitRowMapArray() {
         println("");
-        println("  /** ");
-        println("   * Translates a state to a row index in the transition table");
-        println("   */");
+        println("/** ");
+        println(" * Translates a state to a row index in the transition table");
+        println(" */");
 
         HiLowEmitter e = new HiLowEmitter("RowMap");
         e.emitInit();
@@ -658,9 +658,9 @@ public class JSEmitter implements IEmitter {
     }
 
     private void emitAttributes() {
-        println("  /**");
-        println("   * ZZ_ATTRIBUTE[aState] contains the attributes of state <code>aState</code>");
-        println("   */");
+        println("/**");
+        println(" * ZZ_ATTRIBUTE[aState] contains the attributes of state <code>aState</code>");
+        println(" */");
 
         CountEmitter e = new CountEmitter("Attribute");
         e.emitInit();
@@ -703,110 +703,17 @@ public class JSEmitter implements IEmitter {
             println("  /* user code: */");
             println(scanner.classCode);
         }
-    }
-
-    private void emitConstructorDecl() {
-        emitConstructorDecl(true);
-
-        if ((scanner.standalone || scanner.debugOption)
-            && scanner.ctorArgs.size() > 0) {
-            Out.warning(ErrorMessages.get(ErrorMessages.CTOR_DEBUG));
-            println();
-            emitConstructorDecl(false);
-        }
-    }
-
-    private void emitConstructorDecl(boolean printCtorArgs) {
-
-        String warn =
-                "// WARNING: this is a default constructor for "
-                + "debug/standalone only. Has no custom parameters or init code.";
-
-        if (!printCtorArgs) {
-            println(warn);
-        }
-
-        print("  ");
-
-
-        print(getBaseName(scanner.className));
-        print("(java.io.Reader in");
-        if (printCtorArgs) {
-            emitCtorArgs();
-        }
-        print(")");
-
-        if (scanner.initThrow != null && printCtorArgs) {
-            print(" throws ");
-            print(scanner.initThrow);
-        }
-
-        println(" {");
-
-        if (scanner.initCode != null && printCtorArgs) {
-            print("  ");
-            print(scanner.initCode);
-        }
-
-        println("    this.zzReader = in;");
-
-        println("  }");
-        println();
-
-
-        println("  /**");
-        println("   * Creates a new scanner.");
-        println("   * There is also java.io.Reader version of this constructor.");
-        println("   *");
-        println("   * @param   in  the java.io.Inputstream to read input from.");
-        println("   */");
-        if (!printCtorArgs) {
-            println(warn);
-        }
-
-        print("  ");
-
-        print(getBaseName(scanner.className));
-        print("(java.io.InputStream in");
-        if (printCtorArgs) {
-            emitCtorArgs();
-        }
-        print(")");
-
-        if (scanner.initThrow != null && printCtorArgs) {
-            print(" throws ");
-            print(scanner.initThrow);
-        }
-
-        println(" {");
-
-        print("    this(new java.io.InputStreamReader(in)");
-        if (printCtorArgs) {
-            for (int i = 0; i < scanner.ctorArgs.size(); i++) {
-                print(", " + scanner.ctorArgs.get(i));
-            }
-        }
-        println(");");
-
-        println("  }");
-    }
-
-    private void emitCtorArgs() {
-        for (int i = 0; i < scanner.ctorArgs.size(); i++) {
-            print(", " + scanner.ctorTypes.get(i));
-            print(" " + scanner.ctorArgs.get(i));
-        }
-    }
+    }         
 
     private void emitDoEOF() {
         if (scanner.eofCode == null) {
             return;
         }
 
-        println("  /**");
-        println("   * Contains user EOF-code, which will be executed exactly once,");
-        println("   * when the end of file is reached");
-        println("   */");
+        println("/**");
+        println(" * Contains user EOF-code, which will be executed exactly once,");
+        println(" * when the end of file is reached");
+        println(" */");
 
         print("  private void zzDoEOF()");
 
@@ -1549,40 +1456,34 @@ public class JSEmitter implements IEmitter {
 
         if (scanner.useRowMap) {
             reduceRows();
-
             emitRowMapArray();
-
             if (scanner.packed) {
                 emitDynamicInit();
             } else {
                 emitZZTrans();
             }
         }
+        
+        emitCharMapInitFunction();
+        
+        if (scanner.useRowMap) {
+            emitAttributes();
+        }
 
         println("");
 
         emitUserCode();
         emitClassName();
+        
         skel.emitNext();
-
-        skel.emitNext();
-
-        if (scanner.useRowMap) {
-            emitAttributes();
-        }
-
+        skel.emitNext();        
         skel.emitNext();
 
         emitLookBuffer();
 
         emitClassCode();
 
-        skel.emitNext();
-
-        emitConstructorDecl();
-
-        emitCharMapInitFunction();
-
+        skel.emitNext();                
         skel.emitNext();
 
         emitScanError();
