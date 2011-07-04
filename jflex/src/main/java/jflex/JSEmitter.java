@@ -190,17 +190,12 @@ public class JSEmitter implements IEmitter {
         }
 
         println("/** For the backwards DFA of general lookahead statements */");
-        println("varzzFin = [];");
+        println("var zzFin = [];");
         println();
     }
 
     private void emitScanError() {
-        print("  private void zzScanError(int errorCode)");
-
-        if (scanner.scanErrorException != null) {
-            print(" throws " + scanner.scanErrorException);
-        }
-
+        print("  const zzScanError = function(errorCode)");
         println(" {");
 
         skel.emitNext();
@@ -213,95 +208,12 @@ public class JSEmitter implements IEmitter {
 
         skel.emitNext();
 
-        print(" void yypushback(int number) ");
-
-        if (scanner.scanErrorException == null) {
-            println(" {");
-        } else {
-            println(" throws " + scanner.scanErrorException + " {");
-        }
+        print(" const yypushback = function(number) ");
+        println(" {");
     }
 
     private void emitMain() {
-        if (!(scanner.standalone || scanner.debugOption || scanner.cupDebug)) {
-            return;
-        }
-
-        if (scanner.standalone) {
-            println("  /**");
-            println("   * Runs the scanner on input files.");
-            println("   *");
-            println("   * This is a standalone scanner, it will print any unmatched");
-            println("   * text to System.out unchanged.");
-            println("   *");
-            println("   * @param argv   the command line, contains the filenames to run");
-            println("   *               the scanner on.");
-            println("   */");
-        } else {
-            println("  /**");
-            println("   * Runs the scanner on input files.");
-            println("   *");
-            println("   * This main method is the debugging routine for the scanner.");
-            println("   * It prints debugging information about each returned token to");
-            println("   * System.out until the end of file is reached, or an error occured.");
-            println("   *");
-            println("   * @param argv   the command line, contains the filenames to run");
-            println("   *               the scanner on.");
-            println("   */");
-        }
-
-        String className = getBaseName(scanner.className);
-
-        println("  public static void main(String argv[]) {");
-        println("    if (argv.length == 0) {");
-        println("      System.out.println(\"Usage : java " + className + " [ --encoding <name> ] <inputfile(s)>\");");
-        println("    }");
-        println("    else {");
-        println("      int firstFilePos = 0;");
-        println("      String encodingName = \"UTF-8\";");
-        println("      if (argv[0].equals(\"--encoding\")) {");
-        println("        firstFilePos = 2;");
-        println("        encodingName = argv[1];");
-        println("        try {");
-        println("          java.nio.charset.Charset.forName(encodingName); // Side-effect: is encodingName valid? ");
-        println("        } catch (Exception e) {");
-        println("          System.out.println(\"Invalid encoding '\" + encodingName + \"'\");");
-        println("          return;");
-        println("        }");
-        println("      }");
-        println("      for (int i = firstFilePos; i < argv.length; i++) {");
-        println("        " + className + " scanner = null;");
-        println("        try {");
-        println("          java.io.FileInputStream stream = new java.io.FileInputStream(argv[i]);");
-        println("          java.io.Reader reader = new java.io.InputStreamReader(stream, encodingName);");
-        println("          scanner = new " + className + "(reader);");
-        if (scanner.standalone) {
-            println("          while ( !scanner.zzAtEOF ) scanner." + scanner.functionName + "();");
-        } else if (scanner.cupDebug) {
-            println("          while ( !scanner.zzAtEOF ) scanner.debug_" + scanner.functionName + "();");
-        } else {
-            println("          do {");
-            println("            System.out.println(scanner." + scanner.functionName + "());");
-            println("          } while (!scanner.zzAtEOF);");
-            println("");
-        }
-
-        println("        }");
-        println("        catch (java.io.FileNotFoundException e) {");
-        println("          System.out.println(\"File not found : \\\"\"+argv[i]+\"\\\"\");");
-        println("        }");
-        println("        catch (java.io.IOException e) {");
-        println("          System.out.println(\"IO error scanning file \\\"\"+argv[i]+\"\\\"\");");
-        println("          System.out.println(e);");
-        println("        }");
-        println("        catch (Exception e) {");
-        println("          System.out.println(\"Unexpected exception:\");");
-        println("          e.printStackTrace();");
-        println("        }");
-        println("      }");
-        println("    }");
-        println("  }");
-        println("");
+        return;
     }
 
     private void emitNoMatch() {
@@ -311,26 +223,26 @@ public class JSEmitter implements IEmitter {
     private void emitNextInput() {
         println("          if (zzCurrentPosL < zzEndReadL)");
         println("            zzInput = zzBufferL[zzCurrentPosL++];");
-        println("          else if (zzAtEOF) {");
-        println("            zzInput = YYEOF;");
+        println("          else if (me.zzAtEOF) {");
+        println("            zzInput = me.YYEOF;");
         println("            break zzForAction;");
         println("          }");
         println("          else {");
         println("            // store back cached positions");
-        println("            zzCurrentPos  = zzCurrentPosL;");
-        println("            zzMarkedPos   = zzMarkedPosL;");
-        println("            boolean eof = zzRefill();");
+        println("            me.zzCurrentPos  = zzCurrentPosL;");
+        println("            me.zzMarkedPos   = zzMarkedPosL;");
+        println("            var eof = zzRefill();");
         println("            // get translated positions and possibly new buffer");
-        println("            zzCurrentPosL  = zzCurrentPos;");
-        println("            zzMarkedPosL   = zzMarkedPos;");
-        println("            zzBufferL      = zzBuffer;");
-        println("            zzEndReadL     = zzEndRead;");
+        println("            zzCurrentPosL  = me.zzCurrentPos;");
+        println("            zzMarkedPosL   = me.zzMarkedPos;");
+        println("            zzBufferL      = me.zzBuffer;");
+        println("            zzEndReadL     = me.zzEndRead;");
         println("            if (eof) {");
-        println("              zzInput = YYEOF;");
+        println("              zzInput = me.YYEOF;");
         println("              break zzForAction;");
         println("            }");
         println("            else {");
-        println("              zzInput = zzBufferL[zzCurrentPosL++];");
+        println("              zzInput = me.zzBufferL[zzCurrentPosL++];");
         println("            }");
         println("          }");
     }
@@ -482,7 +394,7 @@ public class JSEmitter implements IEmitter {
         println(" * @param packed   the packed character translation table");
         println(" * @return         the unpacked character translation table");
         println(" */");
-        println("var zzUnpackCMap = function(packed) {");
+        println("const zzUnpackCMap = function(packed) {");
         println("    var map = [];");
         println("    var i = 0;  /* index in packed string  */");
         println("    var j = 0;  /* index in unpacked array */");
@@ -703,7 +615,7 @@ public class JSEmitter implements IEmitter {
             println("  /* user code: */");
             println(scanner.classCode);
         }
-    }         
+    }
 
     private void emitDoEOF() {
         if (scanner.eofCode == null) {
@@ -715,17 +627,11 @@ public class JSEmitter implements IEmitter {
         println(" * when the end of file is reached");
         println(" */");
 
-        print("  private void zzDoEOF()");
-
-        if (scanner.eofThrow != null) {
-            print(" throws ");
-            print(scanner.eofThrow);
-        }
-
+        print("  const zzDoEOF = function()");        
         println(" {");
 
-        println("    if (!zzEOFDone) {");
-        println("      zzEOFDone = true;");
+        println("    if (!me.zzEOFDone) {");
+        println("      me.zzEOFDone = true;");
         println("    " + scanner.eofCode);
         println("    }");
         println("  }");
@@ -737,7 +643,7 @@ public class JSEmitter implements IEmitter {
 
         print(" ");
 
-        if (scanner.tokenType == null) {
+        /*if (scanner.tokenType == null) {
             if (scanner.isInteger) {
                 print("int");
             } else if (scanner.isIntWrap) {
@@ -750,12 +656,13 @@ public class JSEmitter implements IEmitter {
         }
 
         print(" ");
+        */
 
         print(scanner.functionName);
 
-        print("() throws java.io.IOException");
+        print("()");
 
-        if (scanner.lexThrow != null) {
+        /*if (scanner.lexThrow != null) {
             print(", ");
             print(scanner.lexThrow);
         }
@@ -763,50 +670,50 @@ public class JSEmitter implements IEmitter {
         if (scanner.scanErrorException != null) {
             print(", ");
             print(scanner.scanErrorException);
-        }
+        }*/
 
         println(" {");
 
         skel.emitNext();
 
         if (scanner.useRowMap) {
-            println("    int [] zzTransL = ZZ_TRANS;");
-            println("    int [] zzRowMapL = ZZ_ROWMAP;");
-            println("    int [] zzAttrL = ZZ_ATTRIBUTE;");
+            println("    var zzTransL = ZZ_TRANS;");
+            println("    var zzRowMapL = ZZ_ROWMAP;");
+            println("    var zzAttrL = ZZ_ATTRIBUTE;");
 
         }
 
         skel.emitNext();
 
         if (scanner.charCount) {
-            println("      yychar+= zzMarkedPosL-zzStartRead;");
+            println("      me.yychar += zzMarkedPosL - me.zzStartRead;");
             println("");
         }
 
         if (scanner.lineCount || scanner.columnCount) {
-            println("      boolean zzR = false;");
-            println("      for (zzCurrentPosL = zzStartRead; zzCurrentPosL < zzMarkedPosL;");
+            println("      var zzR = false;");
+            println("      for (zzCurrentPosL = me.zzStartRead; zzCurrentPosL < zzMarkedPosL;");
             println("                                                             zzCurrentPosL++) {");
-            println("        switch (zzBufferL[zzCurrentPosL]) {");
+            println("        switch (me.zzBufferL[zzCurrentPosL]) {");
             println("        case '\\u000B':");
             println("        case '\\u000C':");
             println("        case '\\u0085':");
             println("        case '\\u2028':");
             println("        case '\\u2029':");
             if (scanner.lineCount) {
-                println("          yyline++;");
+                println("          me.yyline++;");
             }
             if (scanner.columnCount) {
-                println("          yycolumn = 0;");
+                println("          me.yycolumn = 0;");
             }
             println("          zzR = false;");
             println("          break;");
             println("        case '\\r':");
             if (scanner.lineCount) {
-                println("          yyline++;");
+                println("          me.yyline++;");
             }
             if (scanner.columnCount) {
-                println("          yycolumn = 0;");
+                println("          me.yycolumn = 0;");
             }
             println("          zzR = true;");
             println("          break;");
@@ -815,17 +722,17 @@ public class JSEmitter implements IEmitter {
             println("            zzR = false;");
             println("          else {");
             if (scanner.lineCount) {
-                println("            yyline++;");
+                println("            me.yyline++;");
             }
             if (scanner.columnCount) {
-                println("            yycolumn = 0;");
+                println("            me.yycolumn = 0;");
             }
             println("          }");
             println("          break;");
             println("        default:");
             println("          zzR = false;");
             if (scanner.columnCount) {
-                println("          yycolumn++;");
+                println("          me.yycolumn++;");
             }
             println("        }");
             println("      }");
@@ -834,22 +741,22 @@ public class JSEmitter implements IEmitter {
             if (scanner.lineCount) {
                 println("      if (zzR) {");
                 println("        // peek one character ahead if it is \\n (if we have counted one line too much)");
-                println("        boolean zzPeek;");
+                println("        var zzPeek;");
                 println("        if (zzMarkedPosL < zzEndReadL)");
                 println("          zzPeek = zzBufferL[zzMarkedPosL] == '\\n';");
-                println("        else if (zzAtEOF)");
+                println("        else if (me.zzAtEOF)");
                 println("          zzPeek = false;");
                 println("        else {");
-                println("          boolean eof = zzRefill();");
-                println("          zzEndReadL = zzEndRead;");
-                println("          zzMarkedPosL = zzMarkedPos;");
-                println("          zzBufferL = zzBuffer;");
+                println("          var eof = zzRefill();");
+                println("          zzEndReadL = me.zzEndRead;");
+                println("          zzMarkedPosL = me.zzMarkedPos;");
+                println("          zzBufferL = me.zzBuffer;");
                 println("          if (eof) ");
                 println("            zzPeek = false;");
                 println("          else ");
-                println("            zzPeek = zzBufferL[zzMarkedPosL] == '\\n';");
+                println("            zzPeek = me.zzBufferL[zzMarkedPosL] == '\\n';");
                 println("        }");
-                println("        if (zzPeek) yyline--;");
+                println("        if (zzPeek) me.yyline--;");
                 println("      }");
             }
         }
@@ -858,34 +765,34 @@ public class JSEmitter implements IEmitter {
             // zzMarkedPos > zzStartRead <=> last match was not empty
             // if match was empty, last value of zzAtBOL can be used
             // zzStartRead is always >= 0
-            println("      if (zzMarkedPosL > zzStartRead) {");
-            println("        switch (zzBufferL[zzMarkedPosL-1]) {");
+            println("      if (zzMarkedPosL > me.zzStartRead) {");
+            println("        switch (me.zzBufferL[zzMarkedPosL - 1]) {");
             println("        case '\\n':");
             println("        case '\\u000B':");
             println("        case '\\u000C':");
             println("        case '\\u0085':");
             println("        case '\\u2028':");
             println("        case '\\u2029':");
-            println("          zzAtBOL = true;");
+            println("          me.zzAtBOL = true;");
             println("          break;");
             println("        case '\\r': ");
             println("          if (zzMarkedPosL < zzEndReadL)");
-            println("            zzAtBOL = zzBufferL[zzMarkedPosL] != '\\n';");
-            println("          else if (zzAtEOF)");
-            println("            zzAtBOL = false;");
+            println("            me.zzAtBOL = zzBufferL[zzMarkedPosL] != '\\n';");
+            println("          else if (me.zzAtEOF)");
+            println("            me.zzAtBOL = false;");
             println("          else {");
-            println("            boolean eof = zzRefill();");
-            println("            zzMarkedPosL = zzMarkedPos;");
-            println("            zzEndReadL = zzEndRead;");
-            println("            zzBufferL = zzBuffer;");
+            println("            var eof = zzRefill();");
+            println("            zzMarkedPosL = me.zzMarkedPos;");
+            println("            zzEndReadL = me.zzEndRead;");
+            println("            zzBufferL = me.zzBuffer;");
             println("            if (eof) ");
-            println("              zzAtBOL = false;");
+            println("              me.zzAtBOL = false;");
             println("            else ");
-            println("              zzAtBOL = zzBufferL[zzMarkedPosL] != '\\n';");
+            println("              me.zzAtBOL = me.zzBufferL[zzMarkedPosL] != '\\n';");
             println("          }");
             println("          break;");
             println("        default:");
-            println("          zzAtBOL = false;");
+            println("          me.zzAtBOL = false;");
             println("        }");
             println("      }");
         }
@@ -893,21 +800,21 @@ public class JSEmitter implements IEmitter {
         skel.emitNext();
 
         if (scanner.bolUsed) {
-            println("      if (zzAtBOL)");
-            println("        zzState = ZZ_LEXSTATE[zzLexicalState+1];");
+            println("      if (me.zzAtBOL)");
+            println("        me.zzState = ZZ_LEXSTATE[me.zzLexicalState + 1];");
             println("      else");
-            println("        zzState = ZZ_LEXSTATE[zzLexicalState];");
+            println("        me.zzState = ZZ_LEXSTATE[me.zzLexicalState];");
             println();
         } else {
-            println("      zzState = ZZ_LEXSTATE[zzLexicalState];");
+            println("      me.zzState = ZZ_LEXSTATE[me.zzLexicalState];");
             println();
         }
 
         if (scanner.useRowMap) {
             println("      // set up zzAction for empty match case:");
-            println("      int zzAttributes = zzAttrL[zzState];");
+            println("      var zzAttributes = zzAttrL[me.zzState];");
             println("      if ( (zzAttributes & 1) == 1 ) {");
-            println("        zzAction = zzState;");
+            println("        zzAction = me.zzState;");
             println("      }");
             println();
         }
@@ -916,12 +823,12 @@ public class JSEmitter implements IEmitter {
     }
 
     private void emitGetRowMapNext() {
-        println("          int zzNext = zzTransL[ zzRowMapL[zzState] + zzCMapL[zzInput] ];");
+        println("          var zzNext = zzTransL[ zzRowMapL[me.zzState] + zzCMapL[me.zzInput] ];");
         println("          if (zzNext == " + DFA.NO_TARGET + ") break zzForAction;");
-        println("          zzState = zzNext;");
+        println("          me.zzState = zzNext;");
         println();
 
-        println("          zzAttributes = zzAttrL[zzState];");
+        println("          zzAttributes = zzAttrL[me.zzState];");
 
         println("          if ( (zzAttributes & " + FINAL + ") == " + FINAL + " ) {");
 
@@ -935,14 +842,14 @@ public class JSEmitter implements IEmitter {
     private void emitTransitionTable() {
         transformTransitionTable();
 
-        println("          zzInput = zzCMapL[zzInput];");
+        println("          zzInput = zzCMapL[me.zzInput];");
         println();
 
-        println("          boolean zzIsFinal = false;");
-        println("          boolean zzNoLookAhead = false;");
+        println("          var zzIsFinal = false;");
+        println("          var zzNoLookAhead = false;");
         println();
 
-        println("          zzForNext: { switch (zzState) {");
+        println("          zzForNext: { switch (me.zzState) {");
 
         for (int state = 0; state < dfa.numStates; state++) {
             if (isTransition[state]) {
@@ -1063,7 +970,7 @@ public class JSEmitter implements IEmitter {
 
             if (action.lookAhead() == Action.FIXED_BASE) {
                 println("          // lookahead expression with fixed base length");
-                println("          zzMarkedPos = zzStartRead + " + action.getLookLength() + ";");
+                println("          me.zzMarkedPos = me.zzStartRead + " + action.getLookLength() + ";");
             }
 
             if (action.lookAhead() == Action.FIXED_LOOK
@@ -1074,11 +981,11 @@ public class JSEmitter implements IEmitter {
 
             if (action.lookAhead() == Action.GENERAL_LOOK) {
                 println("          // general lookahead, find correct zzMarkedPos");
-                println("          { int zzFState = " + dfa.entryState[action.getEntryState()] + ";");
-                println("            int zzFPos = zzStartRead;");
-                println("            if (zzFin.length <= zzBufferL.length) { zzFin = new boolean[zzBufferL.length+1]; }");
-                println("            boolean zzFinL[] = zzFin;");
-                println("            while (zzFState != -1 && zzFPos < zzMarkedPos) {");
+                println("          { var zzFState = " + dfa.entryState[action.getEntryState()] + ";");
+                println("            var zzFPos = me.zzStartRead;");
+                println("            if (zzFin.length <= zzBufferL.length) { zzFin = []; }");
+                println("            var zzFinL[] = zzFin;");
+                println("            while (zzFState != -1 && zzFPos < me.zzMarkedPos) {");
                 println("              if ((zzAttrL[zzFState] & 1) == 1) { zzFinL[zzFPos] = true; } ");
                 println("              zzInput = zzBufferL[zzFPos++];");
                 println("              zzFState = zzTransL[ zzRowMapL[zzFState] + zzCMapL[zzInput] ];");
@@ -1086,24 +993,24 @@ public class JSEmitter implements IEmitter {
                 println("            if (zzFState != -1 && (zzAttrL[zzFState] & 1) == 1) { zzFinL[zzFPos] = true; } ");
                 println();
                 println("            zzFState = " + dfa.entryState[action.getEntryState() + 1] + ";");
-                println("            zzFPos = zzMarkedPos;");
+                println("            zzFPos = me.zzMarkedPos;");
                 println("            while (!zzFinL[zzFPos] || (zzAttrL[zzFState] & 1) != 1) {");
                 println("              zzInput = zzBufferL[--zzFPos];");
                 println("              zzFState = zzTransL[ zzRowMapL[zzFState] + zzCMapL[zzInput] ];");
                 println("            };");
-                println("            zzMarkedPos = zzFPos;");
+                println("            me.zzMarkedPos = zzFPos;");
                 println("          }");
             }
 
             if (scanner.debugOption) {
                 print("          System.out.println(");
                 if (scanner.lineCount) {
-                    print("\"line: \"+(yyline+1)+\" \"+");
+                    print("\"line: \" + (me.yyline + 1) +\" \"+");
                 }
                 if (scanner.columnCount) {
-                    print("\"col: \"+(yycolumn+1)+\" \"+");
+                    print("\"col: \" + (me.yycolumn + 1) +\" \"+");
                 }
-                println("\"match: --\"+yytext()+\"--\");");
+                println("\"match: --\" + yytext() +\"--\");");
                 print("          System.out.println(\"action [" + action.priority + "] { ");
                 print(escapify(action.content));
                 println(" }\");");
@@ -1123,7 +1030,7 @@ public class JSEmitter implements IEmitter {
         }
 
         if (eofActions.numActions() > 0) {
-            println("            switch (zzLexicalState) {");
+            println("            switch (me.zzLexicalState) {");
 
             // pick a start value for break case labels. 
             // must be larger than any value of a lex state:
@@ -1138,10 +1045,10 @@ public class JSEmitter implements IEmitter {
                     if (scanner.debugOption) {
                         print("              System.out.println(");
                         if (scanner.lineCount) {
-                            print("\"line: \"+(yyline+1)+\" \"+");
+                            print("\"line: \" + (me.yyline + 1) + \" \"+");
                         }
                         if (scanner.columnCount) {
-                            print("\"col: \"+(yycolumn+1)+\" \"+");
+                            print("\"col: \" + (me.yycolumn + 1) + \" \"+");
                         }
                         println("\"match: <<EOF>>\");");
                         print("              System.out.println(\"action [" + action.priority + "] { ");
@@ -1164,10 +1071,10 @@ public class JSEmitter implements IEmitter {
             if (scanner.debugOption) {
                 print("                System.out.println(");
                 if (scanner.lineCount) {
-                    print("\"line: \"+(yyline+1)+\" \"+");
+                    print("\"line: \" + (me.yyline + 1) +\" \"+");
                 }
                 if (scanner.columnCount) {
-                    print("\"col: \"+(yycolumn+1)+\" \"+");
+                    print("\"col: \" + (me.yycolumn + 1) +\" \"+");
                 }
                 println("\"match: <<EOF>>\");");
                 print("                System.out.println(\"action [" + defaultAction.priority + "] { ");
@@ -1183,7 +1090,7 @@ public class JSEmitter implements IEmitter {
                 Out.error(ErrorMessages.INT_AND_TYPE);
                 throw new GeneratorException();
             }
-            println("            return YYEOF;");
+            println("            return me.YYEOF;");
         } else {
             println("            return null;");
         }
@@ -1250,7 +1157,7 @@ public class JSEmitter implements IEmitter {
             if (nextState == state) {
                 println("break zzForNext;");
             } else {
-                println("zzState = " + nextState + "; break zzForNext;");
+                println("me.zzState = " + nextState + "; break zzForNext;");
             }
         } else {
             println("break zzForAction;");
@@ -1272,7 +1179,7 @@ public class JSEmitter implements IEmitter {
             if (nextState == state) {
                 println("break zzForNext;");
             } else {
-                println("zzState = " + nextState + "; break zzForNext;");
+                println("me.zzState = " + nextState + "; break zzForNext;");
             }
         } else {
             println("break zzForAction;");
@@ -1426,7 +1333,7 @@ public class JSEmitter implements IEmitter {
     private void setupEOFCode() {
         if (scanner.eofclose) {
             scanner.eofCode = LexScan.conc(scanner.eofCode, "  yyclose();");
-            scanner.eofThrow = LexScan.concExc(scanner.eofThrow, "java.io.IOException");
+            scanner.eofThrow = "";//LexScan.concExc(scanner.eofThrow, "java.io.IOException");
         }
     }
 
@@ -1463,9 +1370,9 @@ public class JSEmitter implements IEmitter {
                 emitZZTrans();
             }
         }
-        
+
         emitCharMapInitFunction();
-        
+
         if (scanner.useRowMap) {
             emitAttributes();
         }
@@ -1474,16 +1381,16 @@ public class JSEmitter implements IEmitter {
 
         emitUserCode();
         emitClassName();
-        
+
         skel.emitNext();
-        skel.emitNext();        
+        skel.emitNext();
         skel.emitNext();
 
         emitLookBuffer();
 
         emitClassCode();
 
-        skel.emitNext();                
+        skel.emitNext();
         skel.emitNext();
 
         emitScanError();
@@ -1755,7 +1662,7 @@ public class JSEmitter implements IEmitter {
             println("\";");
 
             nl();
-            println("var zzUnpack" + name + " = function() {");
+            println("const zzUnpack" + name + " = function() {");
             println("   var result = [];");
             println("   offset = 0;");
 
@@ -1767,7 +1674,7 @@ public class JSEmitter implements IEmitter {
             println("}");
             nl();
 
-            println("var zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("const zzUnpack" + name + "Internal = function(packed, offset, result) {");
             println("   var i = 0;       /* index in packed string  */");
             println("   var j = offset;  /* index in unpacked array */");
             println("   var l = packed.length();");
@@ -1838,7 +1745,7 @@ public class JSEmitter implements IEmitter {
             // close last string chunk:
             println("\";");
             nl();
-            println("var zzUnpack" + name + " = function() {");
+            println("const zzUnpack" + name + " = function() {");
             println("   var result = [];");
             println("   var offset = 0;");
 
@@ -1850,7 +1757,7 @@ public class JSEmitter implements IEmitter {
             println("}");
 
             nl();
-            println("var zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("const zzUnpack" + name + "Internal = function(packed, offset, result) {");
             println("    var i = 0;  /* index in packed string  */");
             println("    var j = offset;  /* index in unpacked array */");
             println("    var l = packed.length();");

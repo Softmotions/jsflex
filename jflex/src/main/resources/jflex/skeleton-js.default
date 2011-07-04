@@ -14,7 +14,7 @@ const ZZ_ERROR_MSG = [
 --- BEGIN FUNC
   var me = this;
   /** This character denotes the end of file */
-  const YYEOF = -1;
+  var YYEOF = this.YYEOF = -1;
 
   /** initial size of the lookahead buffer */
 --- private static final int ZZ_BUFFERSIZE = ...;
@@ -86,19 +86,19 @@ const ZZ_ERROR_MSG = [
    *
    * @return      <code>false</code>, iff there was new input.   
    */
-  var zzRefill = function() {
+  const zzRefill = function() {
 
     /* first: make room (if you can) */
-    if (zzStartRead > 0) {
+    if (me.zzStartRead > 0) {
       System.arraycopy(zzBuffer, zzStartRead,
                        zzBuffer, 0,
                        zzEndRead-zzStartRead);
 
       /* translate stored positions */
-      zzEndRead-= zzStartRead;
-      zzCurrentPos-= zzStartRead;
-      zzMarkedPos-= zzStartRead;
-      zzStartRead = 0;
+      me.zzEndRead -= me.zzStartRead;
+      me.zzCurrentPos -= me.zzStartRead;
+      me.zzMarkedPos -= me.zzStartRead;
+      me.zzStartRead = 0;
     }
 
     /* is the buffer big enough? */
@@ -136,10 +136,10 @@ const ZZ_ERROR_MSG = [
   /**
    * Closes the input stream.
    */
-  var yyclose = function() {
+  const yyclose = function() {
     me.zzAtEOF = true;            /* indicate end of file */
     me.mezzEndRead = me.zzStartRead;  /* invalidate buffer    */
-    if (me.zzReader != null && (typeof me.zzReader.close === "function") {
+    if (me.zzReader != null && (typeof me.zzReader.close === "function")) {
       me.zzReader.close();
     }
   }
@@ -157,7 +157,7 @@ const ZZ_ERROR_MSG = [
    *
    * @param reader   the new input stream 
    */
-  var yyreset = function(reader) {
+  const yyreset = function(reader) {
     me.zzReader = reader;
     me.zzAtBOL  = true;
     me.zzAtEOF  = false;
@@ -172,7 +172,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the current lexical state.
    */
-  var yystate = function() {
+  const yystate = function() {
     return me.zzLexicalState;
   }
 
@@ -182,7 +182,7 @@ const ZZ_ERROR_MSG = [
    *
    * @param newState the new lexical state
    */
-  var yybegin = function(newState) {
+  const yybegin = function(newState) {
     me.zzLexicalState = newState;
   }
 
@@ -190,7 +190,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the text matched by the current regular expression.
    */
-  var yytext = function() {
+  const yytext = function() {
     //todo
     return new String( zzBuffer, zzStartRead, zzMarkedPos-zzStartRead );
   }
@@ -207,7 +207,7 @@ const ZZ_ERROR_MSG = [
    *
    * @return the character at position pos
    */
-  var  yycharat = function(pos) {
+  const  yycharat = function(pos) {
     return me.zzBuffer[me.zzStartRead + pos];
   }
 
@@ -215,7 +215,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the length of the matched text region.
    */
-  var yylength = function() {
+  const yylength = function() {
     return me.zzMarkedPos - me.zzStartRead;
   }
 
@@ -294,7 +294,7 @@ const ZZ_ERROR_MSG = [
         while (true) {
     
 --- next input, line, col, char count, next transition, isFinal action
-            me.zzAction = me.zzState;
+            zzAction = me.zzState;
             zzMarkedPosL = zzCurrentPosL;
 --- line count update
           }
