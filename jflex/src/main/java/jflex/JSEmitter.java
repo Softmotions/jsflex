@@ -195,7 +195,7 @@ public class JSEmitter implements IEmitter {
     }
 
     private void emitScanError() {
-        print("  const zzScanError = function(errorCode)");
+        print("  var zzScanError = function(errorCode)");
         println(" {");
 
         skel.emitNext();
@@ -208,7 +208,7 @@ public class JSEmitter implements IEmitter {
 
         skel.emitNext();
 
-        print(" const yypushback = function(number) ");
+        print(" var yypushback = this.yypushback = function(number) ");
         println(" {");
     }
 
@@ -631,7 +631,7 @@ public class JSEmitter implements IEmitter {
         println(" * when the end of file is reached");
         println(" */");
 
-        print("  const zzDoEOF = function() {");
+        print("  var zzDoEOF = function() {");
         println("    if (!me.zzEOFDone) {");
         println("      me.zzEOFDone = true;");
         println("    " + scanner.eofCode);
@@ -643,7 +643,7 @@ public class JSEmitter implements IEmitter {
 
     private void emitLexFunctHeader() {
 
-        print(" const ");
+        print(" var ");
 
         /*if (scanner.tokenType == null) {
         if (scanner.isInteger) {

@@ -79,7 +79,7 @@ const ZZ_ERROR_MSG = [
    *
    * @return      <code>false</code>, iff there was new input.   
    */
-  const zzRefill = function() {
+  var zzRefill = function() {
     return true;
   };
 
@@ -87,7 +87,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Closes the input stream.
    */
-  const yyclose = function() {
+  var yyclose = this.yyclose = function() {
     me.zzAtEOF = true;            /* indicate end of file */
     me.zzEndRead = me.zzStartRead;  /* invalidate buffer  */ 
     me.zzBuffer = "";
@@ -106,7 +106,7 @@ const ZZ_ERROR_MSG = [
    *
    * @param inputString   the input string
    */
-  const yyreset = function(inputString) {
+  var yyreset = this.yyreset = function(inputString) {
     me.zzBuffer = inputString;
     me.zzAtBOL  = true;
     me.zzAtEOF  = false;
@@ -122,7 +122,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the current lexical state.
    */
-  const yystate = function() {
+  var yystate = this.yystate = function() {
     return me.zzLexicalState;
   };
 
@@ -132,7 +132,7 @@ const ZZ_ERROR_MSG = [
    *
    * @param newState the new lexical state
    */
-  const yybegin = function(newState) {
+  var yybegin = this.yybegin = function(newState) {
     me.zzLexicalState = newState;
   };
 
@@ -140,7 +140,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the text matched by the current regular expression.
    */
-  const yytext = function() {    
+  var yytext = this.yytext = function() {    
     return me.zzBuffer.substring(me.zzStartRead,  me.zzMarkedPos);
   };
 
@@ -156,7 +156,7 @@ const ZZ_ERROR_MSG = [
    *
    * @return the character at position pos
    */
-  const  yycharat = function(pos) {
+  var yycharat = this.yycharat = function(pos) {
     return me.zzBuffer[me.zzStartRead + pos];
   };
 
@@ -164,7 +164,7 @@ const ZZ_ERROR_MSG = [
   /**
    * Returns the length of the matched text region.
    */
-  const yylength = function() {
+  var yylength = this.yylength = function() {
     return me.zzMarkedPos - me.zzStartRead;
   };
 
