@@ -51,30 +51,30 @@ nestedwikilink     = "[[" ({wikilinkcontent})+ "|" ({wikilinkcontent} | {wikilin
 /* ----- nowiki ----- */
 
 <YYINITIAL, WIKIPRE>{nowiki} {
-    if (logger.isTraceEnabled()) logger.trace("nowiki: " + yytext() + " (" + yystate() + ")");
+    console.log("nowiki: " + yytext() + " (" + yystate() + ")");
     return yytext();
 }
 
 /* ----- pre ----- */
 
 <YYINITIAL>{htmlpre} {
-    if (logger.isTraceEnabled()) logger.trace("htmlpre: " + yytext() + " (" + yystate() + ")");
+    console.log("htmlpre: " + yytext() + " (" + yystate() + ")");
     return yytext();
 }
 
 <YYINITIAL, WIKIPRE>^{wikiprestart} {
-    if (logger.isTraceEnabled()) logger.trace("wikiprestart: " + yytext() + " (" + yystate() + ")");
+    console.log("wikiprestart: " + yytext() + " (" + yystate() + ")");
     // rollback the one non-pre character so it can be processed
-    yypushback(yytext().length() - 1);
+    yypushback(yytext().length - 1);
     if (yystate() != WIKIPRE) {
-        beginState(WIKIPRE);
+        //beginState(WIKIPRE);
     }
     return yytext();
 }
 
 <WIKIPRE>^{wikipreend} {
-    if (logger.isTraceEnabled()) logger.trace("wikipreend: " + yytext() + " (" + yystate() + ")");
-    endState();
+    console.log("wikipreend: " + yytext() + " (" + yystate() + ")");
+    //endState();
     // rollback the one non-pre character so it can be processed
     yypushback(1);
     return yytext();
@@ -83,21 +83,21 @@ nestedwikilink     = "[[" ({wikilinkcontent})+ "|" ({wikilinkcontent} | {wikilin
 /* ----- processing commands ----- */
 
 <YYINITIAL>{noeditsection} {
-    if (logger.isTraceEnabled()) logger.trace("noeditsection: " + yytext() + " (" + yystate() + ")");
-    this.parserInput.setAllowSectionEdit(false);
-    return (this.mode < JFlexParser.MODE_PREPROCESS) ? yytext() : "";
+    console.log("noeditsection: " + yytext() + " (" + yystate() + ")");
+    //this.parserInput.setAllowSectionEdit(false);
+    return yytext();//(this.mode < JFlexParser.MODE_PREPROCESS) ? yytext() : "";
 }
 
 /* ----- wiki links ----- */
 
 <YYINITIAL>{wikilink} {
-    if (logger.isTraceEnabled()) logger.trace("wikilink: " + yytext() + " (" + yystate() + ")");
-    return this.parse(TAG_TYPE_WIKI_LINK, yytext());
+    console.log("wikilink: " + yytext() + " (" + yystate() + ")");
+    return yytext();//this.parse(TAG_TYPE_WIKI_LINK, yytext());
 }
 
 <YYINITIAL>{nestedwikilink} {
-    if (logger.isTraceEnabled()) logger.trace("nestedwikilink: " + yytext() + " (" + yystate() + ")");
-    return this.parse(TAG_TYPE_WIKI_LINK, yytext(), "nested");
+    console.log("nestedwikilink: " + yytext() + " (" + yystate() + ")");
+    return yytext();//this.parse(TAG_TYPE_WIKI_LINK, yytext(), "nested");
 }
 
 /* ----- other ----- */

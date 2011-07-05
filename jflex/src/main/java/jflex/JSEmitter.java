@@ -222,7 +222,7 @@ public class JSEmitter implements IEmitter {
 
     private void emitNextInput() {
         println("          if (zzCurrentPosL < zzEndReadL)");
-        println("            zzInput = zzBufferL[zzCurrentPosL++];");
+        println("            zzInput = zzBufferL.charCodeAt(zzCurrentPosL++);");
         println("          else if (me.zzAtEOF) {");
         println("            zzInput = me.YYEOF;");
         println("            break zzForAction;");
@@ -242,7 +242,7 @@ public class JSEmitter implements IEmitter {
         println("              break zzForAction;");
         println("            }");
         println("            else {");
-        println("              zzInput = me.zzBufferL[zzCurrentPosL++];");
+        println("              zzInput = zzBufferL.charCodeAt(zzCurrentPosL++);");
         println("            }");
         println("          }");
     }
@@ -277,7 +277,7 @@ public class JSEmitter implements IEmitter {
 
         print("function ");
         print(scanner.className);
-        print("()");
+        print("(inputString)");
 
 
         println(" {");
@@ -399,12 +399,12 @@ public class JSEmitter implements IEmitter {
         println("    var i = 0;  /* index in packed string  */");
         println("    var j = 0;  /* index in unpacked array */");
         println("    while (i < " + 2 * intervals.length + ") {");
-        println("      var  count = packed.charAt(i++);");
-        println("      var value = packed.charAt(i++);");
+        println("      var  count = packed.charCodeAt(i++);");
+        println("      var value = packed.charCodeAt(i++);");
         println("      do map[j++] = value; while (--count > 0);");
         println("    }");
         println("    return map;");
-        println("}");
+        println("};");
     }
 
     private void emitZZTrans() {
@@ -527,6 +527,10 @@ public class JSEmitter implements IEmitter {
 
         println("\";");
         println();
+        
+        
+        emitCharMapInitFunction();
+        println();
 
         println("/** ");
         println(" * Translates characters to character classes");
@@ -627,14 +631,12 @@ public class JSEmitter implements IEmitter {
         println(" * when the end of file is reached");
         println(" */");
 
-        print("  const zzDoEOF = function()");        
-        println(" {");
-
+        print("  const zzDoEOF = function() {");
         println("    if (!me.zzEOFDone) {");
         println("      me.zzEOFDone = true;");
         println("    " + scanner.eofCode);
         println("    }");
-        println("  }");
+        println("};");
         println("");
         println("");
     }
@@ -644,33 +646,38 @@ public class JSEmitter implements IEmitter {
         print(" const ");
 
         /*if (scanner.tokenType == null) {
-            if (scanner.isInteger) {
-                print("int");
-            } else if (scanner.isIntWrap) {
-                print("Integer");
-            } else {
-                print("Yytoken");
-            }
+        if (scanner.isInteger) {
+        print("int");
+        } else if (scanner.isIntWrap) {
+        print("Integer");
         } else {
-            print(scanner.tokenType);
+        print("Yytoken");
         }
-
-        print(" ");
-        */
+        } else {
+        print(scanner.tokenType);
+        }
         
-            
+        print(" ");
+         */
+
+
         print(scanner.functionName);
+        
+        print(" = ");
+        print("this.");
+        print(scanner.functionName);
+        
 
         print(" = function()");
 
         /*if (scanner.lexThrow != null) {
-            print(", ");
-            print(scanner.lexThrow);
+        print(", ");
+        print(scanner.lexThrow);
         }
-
+        
         if (scanner.scanErrorException != null) {
-            print(", ");
-            print(scanner.scanErrorException);
+        print(", ");
+        print(scanner.scanErrorException);
         }*/
 
         println(" {");
@@ -695,7 +702,7 @@ public class JSEmitter implements IEmitter {
             println("      var zzR = false;");
             println("      for (zzCurrentPosL = me.zzStartRead; zzCurrentPosL < zzMarkedPosL;");
             println("                                                             zzCurrentPosL++) {");
-            println("        switch (me.zzBufferL[zzCurrentPosL]) {");
+            println("        switch (zzBufferL[zzCurrentPosL]) {");
             println("        case '\\u000B':");
             println("        case '\\u000C':");
             println("        case '\\u0085':");
@@ -755,7 +762,7 @@ public class JSEmitter implements IEmitter {
                 println("          if (eof) ");
                 println("            zzPeek = false;");
                 println("          else ");
-                println("            zzPeek = me.zzBufferL[zzMarkedPosL] == '\\n';");
+                println("            zzPeek = zzBufferL[zzMarkedPosL] == '\\n';");
                 println("        }");
                 println("        if (zzPeek) me.yyline--;");
                 println("      }");
@@ -767,7 +774,7 @@ public class JSEmitter implements IEmitter {
             // if match was empty, last value of zzAtBOL can be used
             // zzStartRead is always >= 0
             println("      if (zzMarkedPosL > me.zzStartRead) {");
-            println("        switch (me.zzBufferL[zzMarkedPosL - 1]) {");
+            println("        switch (zzBufferL[zzMarkedPosL - 1]) {");
             println("        case '\\n':");
             println("        case '\\u000B':");
             println("        case '\\u000C':");
@@ -789,7 +796,7 @@ public class JSEmitter implements IEmitter {
             println("            if (eof) ");
             println("              me.zzAtBOL = false;");
             println("            else ");
-            println("              me.zzAtBOL = me.zzBufferL[zzMarkedPosL] != '\\n';");
+            println("              me.zzAtBOL = zzBufferL[zzMarkedPosL] != '\\n';");
             println("          }");
             println("          break;");
             println("        default:");
@@ -824,7 +831,7 @@ public class JSEmitter implements IEmitter {
     }
 
     private void emitGetRowMapNext() {
-        println("          var zzNext = zzTransL[ zzRowMapL[me.zzState] + zzCMapL[me.zzInput] ];");
+        println("          var zzNext = zzTransL[ zzRowMapL[me.zzState] + zzCMapL[zzInput] ];");
         println("          if (zzNext == " + DFA.NO_TARGET + ") break zzForAction;");
         println("          me.zzState = zzNext;");
         println();
@@ -843,7 +850,7 @@ public class JSEmitter implements IEmitter {
     private void emitTransitionTable() {
         transformTransitionTable();
 
-        println("          zzInput = zzCMapL[me.zzInput];");
+        println("          zzInput = zzCMapL[zzInput];");
         println();
 
         println("          var zzIsFinal = false;");
@@ -988,7 +995,7 @@ public class JSEmitter implements IEmitter {
                 println("            var zzFinL[] = zzFin;");
                 println("            while (zzFState != -1 && zzFPos < me.zzMarkedPos) {");
                 println("              if ((zzAttrL[zzFState] & 1) == 1) { zzFinL[zzFPos] = true; } ");
-                println("              zzInput = zzBufferL[zzFPos++];");
+                println("              zzInput = zzBufferL.charCodeAt(zzFPos++);");
                 println("              zzFState = zzTransL[ zzRowMapL[zzFState] + zzCMapL[zzInput] ];");
                 println("            }");
                 println("            if (zzFState != -1 && (zzAttrL[zzFState] & 1) == 1) { zzFinL[zzFPos] = true; } ");
@@ -996,7 +1003,7 @@ public class JSEmitter implements IEmitter {
                 println("            zzFState = " + dfa.entryState[action.getEntryState() + 1] + ";");
                 println("            zzFPos = me.zzMarkedPos;");
                 println("            while (!zzFinL[zzFPos] || (zzAttrL[zzFState] & 1) != 1) {");
-                println("              zzInput = zzBufferL[--zzFPos];");
+                println("              zzInput = zzBufferL.charCodeAt(--zzFPos);");
                 println("              zzFState = zzTransL[ zzRowMapL[zzFState] + zzCMapL[zzInput] ];");
                 println("            };");
                 println("            me.zzMarkedPos = zzFPos;");
@@ -1353,7 +1360,7 @@ public class JSEmitter implements IEmitter {
         findActionStates();
 
         emitHeader();
-        println("const ZZ_BUFFERSIZE = " + scanner.bufferSize + ";");
+        //println("const ZZ_BUFFERSIZE = " + scanner.bufferSize + ";");
         if (scanner.debugOption) {
             println("const ZZ_NL = '\n';");
         }
@@ -1371,8 +1378,7 @@ public class JSEmitter implements IEmitter {
                 emitZZTrans();
             }
         }
-
-        emitCharMapInitFunction();
+        
 
         if (scanner.useRowMap) {
             emitAttributes();
@@ -1493,11 +1499,6 @@ public class JSEmitter implements IEmitter {
          * Emit declaration of decoded member and open first chunk.
          */
         public void emitInit() {
-            out.append("const ");
-            out.append(constName());
-            out.append(" = zzUnpack");
-            out.append(name);
-            out.append("();");
             nl();
             nextChunk();
         }
@@ -1665,23 +1666,23 @@ public class JSEmitter implements IEmitter {
             nl();
             println("const zzUnpack" + name + " = function() {");
             println("   var result = [];");
-            println("   offset = 0;");
+            println("   var offset = 0;");
 
             for (int i = 0; i < chunks; i++) {
                 println("   offset = zzUnpack" + name + "Internal(" + constName() + "_PACKED_" + i + ", offset, result);");
             }
 
             println("   return result;");
-            println("}");
+            println("};");
             nl();
 
-            println("const zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("function zzUnpack" + name + "Internal(packed, offset, result) {");
             println("   var i = 0;       /* index in packed string  */");
             println("   var j = offset;  /* index in unpacked array */");
-            println("   var l = packed.length();");
+            println("   var l = packed.length;");
             println("   while (i < l) {");
-            println("      var count = packed.charAt(i++);");
-            println("      var value = packed.charAt(i++);");
+            println("      var count = packed.charCodeAt(i++);");
+            println("      var value = packed.charCodeAt(i++);");
             if (translate == 1) {
                 println("      value--;");
             } else if (translate != 0) {
@@ -1690,7 +1691,14 @@ public class JSEmitter implements IEmitter {
             println("      do result[j++] = value; while (--count > 0);");
             println("   }");
             println("   return j;");
-            println("}");
+            println("};");
+
+            nl();
+            out.append("const ");
+            out.append(constName());
+            out.append(" = zzUnpack");
+            out.append(name);
+            out.append("();");
         }
 
         /**
@@ -1755,19 +1763,27 @@ public class JSEmitter implements IEmitter {
             }
 
             println("    return result;");
-            println("}");
+            println("};");
 
             nl();
-            println("const zzUnpack" + name + "Internal = function(packed, offset, result) {");
+            println("function zzUnpack" + name + "Internal(packed, offset, result) {");
             println("    var i = 0;  /* index in packed string  */");
             println("    var j = offset;  /* index in unpacked array */");
-            println("    var l = packed.length();");
+            println("    var l = packed.length;");
             println("    while (i < l) {");
-            println("      var high = packed.charAt(i++) << 16;");
-            println("      result[j++] = high | packed.charAt(i++);");
+            println("      var high = packed.charCodeAt(i++) << 16;");
+            println("      result[j++] = high | packed.charCodeAt(i++);");
             println("    }");
             println("    return j;");
-            println("}");
+            println("};");
+
+
+            nl();
+            out.append("const ");
+            out.append(constName());
+            out.append(" = zzUnpack");
+            out.append(name);
+            out.append("();");
         }
 
         /**

@@ -26,5 +26,7 @@ public class JSTest extends TestCase {
                 return new JSEmitter(inputFile, parser, dfa);
             }
         });
+        
+        Main.generate(inFile, null);
     }
 }

@@ -1,4 +1,4 @@
- 
+
   /* error codes */
 const ZZ_UNKNOWN_ERROR = 0;
 const ZZ_NO_MATCH = 1;
@@ -21,18 +21,16 @@ const ZZ_ERROR_MSG = [
 
 
 --- isFinal list
-  /** the input device todo remove */
-  this.zzReader = null;
-
+  
   /** the current state of the DFA */
   this.zzState = 0;
 
   /** the current lexical state */
-  this.zzLexicalState = me.YYINITIAL;
+  this.zzLexicalState = YYINITIAL;
 
   /** this buffer contains the current text to be matched and is
       the source of the yytext() string */
-  this.zzBuffer = [];
+  this.zzBuffer = inputString;
 
   /** the textposition at the last accepting state */
   this.zzMarkedPos = 0;
@@ -45,7 +43,7 @@ const ZZ_ERROR_MSG = [
 
   /** endRead marks the last character in the buffer, that has been read
       from input */
-  this.zzEndRead = 0;
+  this.zzEndRead = this.zzBuffer.length;
 
   /** number of newlines encountered up to the start of the matched text */
   this.yyline = 0;
@@ -72,12 +70,7 @@ const ZZ_ERROR_MSG = [
 
 --- user class code
 
-  /**
-   * Creates a new scanner
-   * There is also a java.io.InputStream version of this constructor.
-   *
-   * @param   in  the java.io.Reader to read input from.
-   */
+ 
 --- constructor declaration
 
 
@@ -87,48 +80,6 @@ const ZZ_ERROR_MSG = [
    * @return      <code>false</code>, iff there was new input.   
    */
   const zzRefill = function() {
-
-    /* first: make room (if you can) */
-    if (me.zzStartRead > 0) {
-      System.arraycopy(zzBuffer, zzStartRead,
-                       zzBuffer, 0,
-                       zzEndRead-zzStartRead);
-
-      /* translate stored positions */
-      me.zzEndRead -= me.zzStartRead;
-      me.zzCurrentPos -= me.zzStartRead;
-      me.zzMarkedPos -= me.zzStartRead;
-      me.zzStartRead = 0;
-    }
-
-    /* is the buffer big enough? */
-    if (zzCurrentPos >= zzBuffer.length) {
-      /* if not: blow it up */
-      char newBuffer[] = new char[zzCurrentPos*2];
-      System.arraycopy(zzBuffer, 0, newBuffer, 0, zzBuffer.length);
-      zzBuffer = newBuffer;
-    }
-
-    /* finally: fill the buffer with new input */
-    int numRead = zzReader.read(zzBuffer, zzEndRead,
-                                            zzBuffer.length-zzEndRead);
-
-    if (numRead > 0) {
-      zzEndRead+= numRead;
-      return false;
-    }
-    // unlikely but not impossible: read 0 characters, but not at end of stream    
-    if (numRead == 0) {
-      int c = zzReader.read();
-      if (c == -1) {
-        return true;
-      } else {
-        zzBuffer[zzEndRead++] = (char) c;
-        return false;
-      }     
-    }
-
-	// numRead < 0
     return true;
   };
 
@@ -138,11 +89,9 @@ const ZZ_ERROR_MSG = [
    */
   const yyclose = function() {
     me.zzAtEOF = true;            /* indicate end of file */
-    me.mezzEndRead = me.zzStartRead;  /* invalidate buffer    */
-    if (me.zzReader != null && (typeof me.zzReader.close === "function")) {
-      me.zzReader.close();
-    }
-  }
+    me.zzEndRead = me.zzStartRead;  /* invalidate buffer  */ 
+    me.zzBuffer = "";
+  };
 
 
   /**
@@ -155,18 +104,19 @@ const ZZ_ERROR_MSG = [
    *
    * Internal scan buffer is resized down to its initial length, if it has grown.
    *
-   * @param reader   the new input stream 
+   * @param inputString   the input string
    */
-  const yyreset = function(reader) {
-    me.zzReader = reader;
+  const yyreset = function(inputString) {
+    me.zzBuffer = inputString;
     me.zzAtBOL  = true;
     me.zzAtEOF  = false;
     me.zzEOFDone = false;
-    me.zzEndRead = me.zzStartRead = 0;
+    me.zzStartRead = 0;
+    me.zzEndRead = me.zzBuffer.length;
     me.zzCurrentPos = me.zzMarkedPos = 0;
     me.yyline = me.yychar = me.yycolumn = 0;
-    me.zzLexicalState = me.YYINITIAL;    
-  }
+    me.zzLexicalState = YYINITIAL;    
+  };
 
 
   /**
@@ -174,7 +124,7 @@ const ZZ_ERROR_MSG = [
    */
   const yystate = function() {
     return me.zzLexicalState;
-  }
+  };
 
 
   /**
@@ -184,16 +134,15 @@ const ZZ_ERROR_MSG = [
    */
   const yybegin = function(newState) {
     me.zzLexicalState = newState;
-  }
+  };
 
 
   /**
    * Returns the text matched by the current regular expression.
    */
-  const yytext = function() {
-    //todo
-    return new String( zzBuffer, zzStartRead, zzMarkedPos-zzStartRead );
-  }
+  const yytext = function() {    
+    return me.zzBuffer.substring(me.zzStartRead,  me.zzMarkedPos - me.zzStartRead);
+  };
 
 
   /**
@@ -209,7 +158,7 @@ const ZZ_ERROR_MSG = [
    */
   const  yycharat = function(pos) {
     return me.zzBuffer[me.zzStartRead + pos];
-  }
+  };
 
 
   /**
@@ -217,7 +166,7 @@ const ZZ_ERROR_MSG = [
    */
   const yylength = function() {
     return me.zzMarkedPos - me.zzStartRead;
-  }
+  };
 
 
   /**
@@ -240,7 +189,7 @@ const ZZ_ERROR_MSG = [
         message = ZZ_ERROR_MSG[ZZ_UNKNOWN_ERROR];
     }    
 --- throws clause
-  } 
+  }; 
 
 
   /**
@@ -256,7 +205,7 @@ const ZZ_ERROR_MSG = [
       zzScanError(ZZ_PUSHBACK_2BIG);
 
     me.zzMarkedPos -= number;
-  }
+  };
 
 
 --- zzDoEOF
@@ -308,7 +257,7 @@ const ZZ_ERROR_MSG = [
 
 --- actions
         default: 
-          if (me.zzInput == YYEOF && me.zzStartRead == me.zzCurrentPos) {
+          if (zzInput == YYEOF && me.zzStartRead == me.zzCurrentPos) {
             me.zzAtEOF = true;
 --- eofvalue
           } 
@@ -320,5 +269,4 @@ const ZZ_ERROR_MSG = [
   }
 
 --- main
-
 }
