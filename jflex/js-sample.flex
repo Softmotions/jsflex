@@ -68,13 +68,14 @@ nestedwikilink     = "[[" ({wikilinkcontent})+ "|" ({wikilinkcontent} | {wikilin
     yypushback(yytext().length - 1);
     if (yystate() != WIKIPRE) {
         //beginState(WIKIPRE);
+        yybegin(WIKIPRE);
     }
     return yytext();
 }
 
 <WIKIPRE>^{wikipreend} {
     console.log("wikipreend: " + yytext() + " (" + yystate() + ")");
-    //endState();
+    yybegin(YYINITIAL);
     // rollback the one non-pre character so it can be processed
     yypushback(1);
     return yytext();

@@ -141,7 +141,7 @@ const ZZ_ERROR_MSG = [
    * Returns the text matched by the current regular expression.
    */
   const yytext = function() {    
-    return me.zzBuffer.substring(me.zzStartRead,  me.zzMarkedPos - me.zzStartRead);
+    return me.zzBuffer.substring(me.zzStartRead,  me.zzMarkedPos);
   };
 
 
