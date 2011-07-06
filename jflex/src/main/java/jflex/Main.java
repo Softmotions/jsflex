@@ -27,6 +27,23 @@ public class Main {
   
   /** JFlex version */
   final public static String version = "1.5.0-SNAPSHOT"; //$NON-NLS-1$
+  
+  
+  public static void generateWithEmitterAlias(File inputFile, String emitter) {
+      if ("js".equals(emitter)) {
+          generate(inputFile, new EmitterFactory() {
+                public IEmitter createEmitter(File inputFile, LexParse parser, DFA dfa) throws IOException {
+                    return new JSEmitter(inputFile, parser, dfa);
+                }
+            });
+      } else {
+          generate(inputFile, new EmitterFactory() {
+                public IEmitter createEmitter(File inputFile, LexParse parser, DFA dfa) throws IOException {
+                    return new JavaEmitter(inputFile, parser, dfa);
+                }
+            });
+      }     
+  }
 
   /**
    * Generates a scanner for the specified input file.
@@ -35,6 +52,11 @@ public class Main {
    *                   to generate a scanner for.
    */
   public static void generate(File inputFile, EmitterFactory ifactory) {
+      
+    if (ifactory == null)   {
+        generateWithEmitterAlias(inputFile, Options.emitter);
+        return;
+    }
 
     Out.resetCounters();
 
@@ -104,12 +126,8 @@ public class Main {
 
       time.start();
       
-      IEmitter e = null;
-      if (ifactory == null) {
-        e = new JavaEmitter(inputFile, parser, dfa);
-      } else {
-        e = ifactory.createEmitter(inputFile, parser, dfa);  
-      }
+      IEmitter e = ifactory.createEmitter(inputFile, parser, dfa);  
+      
       e.emit();
 
       time.stop();
@@ -150,6 +168,15 @@ public class Main {
     List<File> files = new ArrayList<File>();
 
     for (int i = 0; i < argv.length; i++) {
+        
+      if ( argv[i].equals("-e") || argv[i].equals("--emitter") ) { //$NON-NLS-1$ //$NON-NLS-2$
+        if ( ++i >= argv.length ) {
+          Out.error(ErrorMessages.NO_EMITTER); 
+          throw new GeneratorException();
+        }
+        Options.emitter = argv[i] != null ? argv[i].trim() : null;
+        continue;
+      }  
 
       if ( argv[i].equals("-d") || argv[i].equals("--outdir") ) { //$NON-NLS-1$ //$NON-NLS-2$
         if ( ++i >= argv.length ) {
@@ -268,6 +295,7 @@ public class Main {
     Out.println("");
     Out.println("Where <options> can be one or more of");
     Out.println("-d <directory>   write generated file to <directory>");
+    Out.println("-e  [js|java]   Parser code emitter, valid vals: 'js' - emit javascript parser, 'java' - emit java parser");
     Out.println("--skel <file>    use external skeleton <file>");
     Out.println("--switch");
     Out.println("--table");

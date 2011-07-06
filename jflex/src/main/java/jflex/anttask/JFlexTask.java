@@ -169,6 +169,11 @@ public class JFlexTask extends Task {
 		this.outputDir = outDir;
     Options.setDir(outputDir);
 	}
+    
+  public void setEmitter(String emitter)   {
+      Options.emitter = emitter;
+  }
+    
 
   public void setFile(File file) {
     this.inputFile = file;

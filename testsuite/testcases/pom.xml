@@ -18,7 +18,7 @@
     </dependency>
     <dependency>
       <groupId>de.jflex</groupId>
-      <artifactId>jflex</artifactId>
+      <artifactId>jsflex</artifactId>
       <version>${jflex.test.version}</version>
       <scope>test</scope>
     </dependency>

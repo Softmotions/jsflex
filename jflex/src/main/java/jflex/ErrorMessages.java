@@ -91,6 +91,7 @@ public class ErrorMessages {
   public static ErrorMessages NO_LEX_SPEC = new ErrorMessages("NO_LEX_SPEC");
   public static ErrorMessages NO_LAST_ACTION = new ErrorMessages("NO_LAST_ACTION");
   public static ErrorMessages NO_DIRECTORY = new ErrorMessages("NO_DIRECTORY");
+  public static ErrorMessages NO_EMITTER = new ErrorMessages("NO_EMITTER");
   public static ErrorMessages NO_SKEL_FILE = new ErrorMessages("NO_SKEL_FILE");
   public static ErrorMessages WRONG_SKELETON = new ErrorMessages("WRONG_SKELETON");
   public static ErrorMessages OUT_OF_MEMORY = new ErrorMessages("OUT_OF_MEMORY");

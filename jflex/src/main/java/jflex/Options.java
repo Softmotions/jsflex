@@ -52,6 +52,8 @@ public class Options {
   public static boolean dot;
   /** If true, you will be flooded with information (e.g. dfa tables).  */
   public static boolean dump;
+  /** Emitter alias */
+  public static String emitter;
   
   public static Skeleton skel = new Skeleton();
 
