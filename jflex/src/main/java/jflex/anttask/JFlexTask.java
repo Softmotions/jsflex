@@ -54,7 +54,7 @@ public class JFlexTask extends Task {
 			try {
       	findPackageAndClass();        
         normalizeOutdir();
-        File destFile = new File(outputDir, className + ".java");
+        File destFile = new File(outputDir, "js".equals(Options.emitter) ? className + ".js" : className + ".java");
         
         if (inputFile.lastModified() > destFile.lastModified()) {      
           Main.generate(inputFile, null);      

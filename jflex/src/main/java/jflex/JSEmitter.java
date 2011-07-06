@@ -276,8 +276,14 @@ public class JSEmitter implements IEmitter {
 
 
         print("module.exports.");
-        print(scanner.className);        
-        print(" = function ");
+        print(scanner.className);
+        print(" = ");
+        print(scanner.className);
+        print(";");
+        
+        println();
+        
+        print("function ");
         print(scanner.className);
         print("(inputString)");
 
